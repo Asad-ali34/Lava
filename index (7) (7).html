@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Lavalink Monitor</title>
+  <!-- Preconnect for fast font loading -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+  <div class="bg-orb bg-orb-3"></div>
+  <div class="bg-grid"></div>
+
+  <!-- ── LOADING OVERLAY ──────────────────────────────────────────────────── -->
+  <div class="load-overlay" id="loadOverlay">
+    <div class="load-card">
+      <div class="load-logo">
+        <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="56" height="56" rx="16" fill="url(#lg)"/>
+          <rect x="11" y="18" width="7" height="20" rx="3.5" fill="white" class="lb1"/>
+          <rect x="24.5" y="11" width="7" height="34" rx="3.5" fill="white" opacity=".9" class="lb2"/>
+          <rect x="38" y="22" width="7" height="14" rx="3.5" fill="white" opacity=".75" class="lb3"/>
+          <defs><linearGradient id="lg" x1="0" y1="0" x2="56" y2="56"><stop offset="0%" stop-color="#6366f1"/><stop offset="100%" stop-color="#8b5cf6"/></linearGradient></defs>
+        </svg>
+      </div>
+      <div class="load-name">Lavalink Monitor</div>
+      <div class="load-track"><div class="load-fill" id="loadFill"></div></div>
+      <div class="load-msg" id="loadMsg">Connecting to nodes…</div>
+    </div>
+  </div>
+
+  <!-- ── HEADER ───────────────────────────────────────────────────────────── -->
+  <header class="hdr">
+    <div class="hdr-inner">
+      <div class="logo">
+        <div class="logo-mark">
+          <svg viewBox="0 0 40 40" fill="none">
+            <rect width="40" height="40" rx="11" fill="url(#hlg)"/>
+            <rect x="8"  y="13" width="5" height="14" rx="2.5" fill="white"/>
+            <rect x="17.5" y="8" width="5" height="24" rx="2.5" fill="white" opacity=".9"/>
+            <rect x="27" y="16" width="5" height="10" rx="2.5" fill="white" opacity=".75"/>
+            <defs><linearGradient id="hlg" x1="0" y1="0" x2="40" y2="40"><stop offset="0%" stop-color="#6366f1"/><stop offset="100%" stop-color="#8b5cf6"/></linearGradient></defs>
+          </svg>
+        </div>
+        <div class="logo-text">
+          <span class="logo-name">Lavalink</span>
+          <span class="logo-badge">Monitor</span>
+        </div>
+      </div>
+
+      <!-- Node pills (populated by JS) -->
+      <div class="node-pills" id="nodePills"></div>
+
+      <div class="hdr-stats">
+        <div class="hdr-stat">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="13,7 11,7 9.5,12 5.5,2 3.5,7 1,7"/></svg>
+          <span id="hdrPing">--</span><span class="hdr-unit">ms</span>
+        </div>
+        <div class="hdr-div"></div>
+        <div class="hdr-stat">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7" r="5.5"/><polyline points="7,4.5 7,7 8.5,8"/></svg>
+          <span id="hdrUptime">--</span>
+        </div>
+        <div class="hdr-div"></div>
+        <div class="hdr-stat">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="4.5" r="2.5"/><path d="M1 12v-1a5 5 0 0 1 10 0v1"/></svg>
+          <span id="hdrPlayers">--</span>
+        </div>
+      </div>
+
+      <div class="hdr-right">
+        <span class="hdr-time" id="lastUpdated">--</span>
+        <div class="status-pill" id="statusPill">
+          <div class="status-dot"></div>
+          <span id="statusText">Connecting</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ── NODE CARDS (multi-node overview) ────────────────────────────────── -->
+    <div id="nodeCards" class="node-cards" style="display:none"></div>
+
+    <!-- ── STAT CARDS ───────────────────────────────────────────────────────── -->
+    <section class="stat-grid">
+      <div class="scard scard-indigo" id="sc0">
+        <div class="scard-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="8"/><polyline points="10,6 10,10 13,12"/></svg></div>
+        <div class="scard-lbl">Uptime</div>
+        <div class="scard-val" id="uptime">—</div>
+        <div class="scard-shine"></div>
+      </div>
+      <div class="scard scard-blue" id="sc1">
+        <div class="scard-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="5.5" r="3"/><path d="M1 16.5v-1a6 6 0 0 1 12 0v1"/><circle cx="15" cy="5.5" r="2.5"/><path d="M19 16.5a4 4 0 0 0-4-4"/></svg></div>
+        <div class="scard-lbl">Total Players</div>
+        <div class="scard-val" id="totalPlayers">—</div>
+        <div class="scard-shine"></div>
+      </div>
+      <div class="scard scard-emerald" id="sc2">
+        <div class="scard-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="8"/><polygon points="8,7 14,10 8,13" fill="currentColor" stroke="none"/></svg></div>
+        <div class="scard-lbl">Now Playing</div>
+        <div class="scard-val" id="playingPlayers">—</div>
+        <div class="scard-shine"></div>
+      </div>
+      <div class="scard scard-violet" id="sc3">
+        <div class="scard-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="19,10 16,10 13.5,17 6.5,3 4,10 1,10"/></svg></div>
+        <div class="scard-lbl">Lavalink CPU</div>
+        <div class="scard-val" id="cpuLLCard">—</div>
+        <div class="scard-shine"></div>
+      </div>
+      <div class="scard scard-cyan" id="sc4">
+        <div class="scard-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="10" cy="4.5" rx="7" ry="2.5"/><path d="M3 4.5v11c0 1.38 3.13 2.5 7 2.5s7-1.12 7-2.5v-11"/><path d="M3 10c0 1.38 3.13 2.5 7 2.5s7-1.12 7-2.5"/></svg></div>
+        <div class="scard-lbl">Memory Used</div>
+        <div class="scard-val" id="memCard">—</div>
+        <div class="scard-shine"></div>
+      </div>
+      <div class="scard scard-amber" id="sc5">
+        <div class="scard-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="13" height="13" rx="2"/><rect x="7" y="7" width="6" height="6" rx="1"/><line x1="7" y1="0.5" x2="7" y2="3.5"/><line x1="13" y1="0.5" x2="13" y2="3.5"/><line x1="7" y1="16.5" x2="7" y2="19.5"/><line x1="13" y1="16.5" x2="13" y2="19.5"/><line x1="0.5" y1="7" x2="3.5" y2="7"/><line x1="0.5" y1="13" x2="3.5" y2="13"/><line x1="16.5" y1="7" x2="19.5" y2="7"/><line x1="16.5" y1="13" x2="19.5" y2="13"/></svg></div>
+        <div class="scard-lbl">CPU Cores</div>
+        <div class="scard-val" id="cpuCores">—</div>
+        <div class="scard-shine"></div>
+      </div>
+    </section>
+
+    <!-- ── CHARTS (4 charts) ─────────────────────────────────────────────── -->
+    <section class="chart-grid-4">
+      <div class="panel">
+        <div class="phdr"><div class="phdr-l"><div class="pdot dot-indigo"></div>CPU Usage %</div><div class="live-badge"><div class="live-dot"></div>live</div></div>
+        <div class="chart-box"><canvas id="cpuChart"></canvas></div>
+      </div>
+      <div class="panel">
+        <div class="phdr"><div class="phdr-l"><div class="pdot dot-emerald"></div>Memory MB</div><div class="live-badge"><div class="live-dot"></div>live</div></div>
+        <div class="chart-box"><canvas id="memChart"></canvas></div>
+      </div>
+      <div class="panel">
+        <div class="phdr"><div class="phdr-l"><div class="pdot dot-violet"></div>Players Active</div><div class="live-badge"><div class="live-dot"></div>live</div></div>
+        <div class="chart-box"><canvas id="playersChart"></canvas></div>
+      </div>
+      <div class="panel">
+        <div class="phdr"><div class="phdr-l"><div class="pdot dot-cyan"></div>Ping ms</div><div class="live-badge"><div class="live-dot"></div>live</div></div>
+        <div class="chart-box"><canvas id="pingChart"></canvas></div>
+      </div>
+    </section>
+
+    <!-- ── DETAIL PANELS ────────────────────────────────────────────────────── -->
+    <section class="detail-grid">
+      <div class="panel">
+        <div class="phdr"><div class="phdr-l"><div class="pdot dot-indigo"></div>CPU Usage</div></div>
+        <div class="panel-body">
+          <div class="gauges">
+            <div class="gauge-blk"><canvas id="gaugeSys" width="120" height="70"></canvas><div class="gauge-val" id="gSysVal">--%</div><div class="gauge-lbl">System</div></div>
+            <div class="gauge-sep"></div>
+            <div class="gauge-blk"><canvas id="gaugeLL" width="120" height="70"></canvas><div class="gauge-val" id="gLLVal">--%</div><div class="gauge-lbl">Lavalink</div></div>
+          </div>
+          <div class="bars-sec">
+            <div class="bar-row"><div class="bar-head"><span>System</span><span id="cpuSys" class="bar-pct">--%</span></div><div class="bar-track"><div class="bar-fill bf-sys" id="bSys"></div></div></div>
+            <div class="bar-row"><div class="bar-head"><span>Lavalink</span><span id="cpuLL" class="bar-pct">--%</span></div><div class="bar-track"><div class="bar-fill bf-ll" id="bLL"></div></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="phdr"><div class="phdr-l"><div class="pdot dot-cyan"></div>Memory</div></div>
+        <div class="panel-body">
+          <div class="bar-row" style="margin-bottom:16px"><div class="bar-head"><span>Used / Allocated</span><span id="memUsed" class="bar-pct">--</span></div><div class="bar-track"><div class="bar-fill bf-mem" id="bMem"></div></div></div>
+          <div class="mem-tiles">
+            <div class="mtile"><div class="mtile-lbl">Allocated</div><div class="mtile-val" id="memAlloc">--</div></div>
+            <div class="mtile"><div class="mtile-lbl">Reservable</div><div class="mtile-val" id="memRes">--</div></div>
+            <div class="mtile"><div class="mtile-lbl">Free</div><div class="mtile-val" id="memFree">--</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="phdr"><div class="phdr-l"><div class="pdot dot-amber"></div>Frame Stats</div></div>
+        <div class="panel-body">
+          <div id="frameTiles" class="frame-tiles" style="display:none">
+            <div class="ftile"><div class="ftile-val" id="fSent">0</div><div class="ftile-lbl"><i class="fd fd-g"></i>Sent</div></div>
+            <div class="ftile"><div class="ftile-val" id="fNull">0</div><div class="ftile-lbl"><i class="fd fd-r"></i>Nulled</div></div>
+            <div class="ftile"><div class="ftile-val" id="fDef">0</div><div class="ftile-lbl"><i class="fd fd-a"></i>Deficit</div></div>
+          </div>
+          <div id="frameNone" class="f-empty">
+            <div class="f-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+            <p>No active audio</p><span>Appears when music plays</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── NOW PLAYING ───────────────────────────────────────────────────────── -->
+    <section class="panel np-section">
+      <div class="phdr">
+        <div class="phdr-l"><div class="pdot dot-pink"></div>Now Playing<span class="np-count" id="npCount">0</span></div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="live-badge"><div class="live-dot"></div>live</div>
+          <button class="icon-btn" id="npHelpBtn" title="How to show track data">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M8 11v-.5a2 2 0 0 1 1-1.73A2.5 2.5 0 1 0 5.5 6.5"/><circle cx="8" cy="13" r=".5" fill="currentColor"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="np-help" id="npHelp" style="display:none">
+        <p>The monitor auto-connects to Lavalink and captures session IDs. If no tracks appear, your bot is using a different User-Id. Add the session ID to <code>config.json</code> or route the bot through this monitor's WS proxy.</p>
+        <button class="help-close" id="npHelpClose">Dismiss</button>
+      </div>
+      <div id="npGrid" class="np-grid">
+        <div class="np-empty">
+          <div class="np-eq"><span></span><span></span><span></span><span></span><span></span></div>
+          <p>Waiting for track data</p>
+          <span id="npEmptyHint">The monitor is connected and listening — tracks appear here when your bot plays music</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── SEARCH ────────────────────────────────────────────────────────────── -->
+    <section class="panel search-section">
+      <div class="phdr"><div class="phdr-l"><div class="pdot dot-indigo"></div>Track Search &amp; Player</div></div>
+      <div class="search-body">
+
+        <div class="search-wrap">
+          <div class="search-bar" id="searchBar">
+            <div class="s-ico"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="6"/><line x1="17" y1="17" x2="13.5" y2="13.5"/></svg></div>
+            <input id="searchInput" class="s-input" type="text" placeholder="Search songs, artists, albums, or paste a URL…" autocomplete="off" spellcheck="false"/>
+            <div class="s-spinner" id="searchSpinner" style="display:none"><div class="spin-ring"></div></div>
+            <button class="s-clear" id="searchClear" style="display:none"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="4" x2="4" y2="12"/><line x1="4" y1="4" x2="12" y2="12"/></svg></button>
+          </div>
+          <div class="source-row">
+            <button class="src-btn active" data-src="yt">
+              <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a8 8 0 1 0 0 16A8 8 0 0 0 10 2zm-1.25 11.25V6.75L13.5 10l-4.75 3.25z"/></svg>YouTube
+            </button>
+            <button class="src-btn" data-src="sc">
+              <svg viewBox="0 0 20 20" fill="currentColor"><path d="M1 12.5a.5.5 0 0 0 1 0v-1a.5.5 0 0 0-1 0v1zm2-2v2h1v-2h-1zm2-.5v2.5h1V10a.75.75 0 0 0-1 0zm2 0v2.5h1V9.75a1 1 0 0 0-1 .25zm2 0v2.5h1V9.75a1.5 1.5 0 0 0-3 0V13h1v-2.5a.5.5 0 0 1 1 0V13h1v-2.5a1.5 1.5 0 0 0-1.5-1.5 3.5 3.5 0 0 0-3.46 3A2.5 2.5 0 0 1 13 12v1h1v-1a3.5 3.5 0 0 0-3.5-3.5z"/></svg>SoundCloud
+            </button>
+            <button class="src-btn" data-src="all">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="8"/><path d="M10 2a12 12 0 0 1 0 16M2 10h16"/></svg>All Sources
+            </button>
+          </div>
+        </div>
+
+        <!-- Trending chips -->
+        <div class="trending" id="trendingWrap">
+          <span class="trending-lbl">Trending</span>
+          <div class="trending-chips">
+            <button class="chip" data-q="Bad Bunny">Bad Bunny</button>
+            <button class="chip" data-q="The Weeknd Blinding Lights">Blinding Lights</button>
+            <button class="chip" data-q="Taylor Swift Cruel Summer">Cruel Summer</button>
+            <button class="chip" data-q="Drake God's Plan">God's Plan</button>
+            <button class="chip" data-q="Billie Eilish">Billie Eilish</button>
+            <button class="chip" data-q="Post Malone Sunflower">Sunflower</button>
+            <button class="chip" data-q="Doja Cat Say So">Say So</button>
+            <button class="chip" data-q="Kendrick Lamar HUMBLE">HUMBLE</button>
+            <button class="chip" data-q="Olivia Rodrigo drivers license">drivers license</button>
+            <button class="chip" data-q="Harry Styles As It Was">As It Was</button>
+            <button class="chip" data-q="SZA Kill Bill">Kill Bill</button>
+            <button class="chip" data-q="Arctic Monkeys Do I Wanna Know">Do I Wanna Know</button>
+            <button class="chip" data-q="Eminem Lose Yourself">Lose Yourself</button>
+            <button class="chip" data-q="Kanye West POWER">POWER</button>
+            <button class="chip" data-q="XXXTENTACION SAD!">SAD!</button>
+            <button class="chip" data-q="Juice WRLD Lucid Dreams">Lucid Dreams</button>
+          </div>
+        </div>
+
+        <!-- In-page player -->
+        <div class="player-panel" id="playerPanel" style="display:none">
+          <div class="player-left">
+            <div class="player-art-wrap">
+              <img class="player-art" id="playerArt" src="" alt=""/>
+              <div class="player-bars"><span></span><span></span><span></span></div>
+            </div>
+            <div class="player-meta">
+              <div class="player-src" id="playerSrc"></div>
+              <div class="player-title" id="playerTitle">—</div>
+              <div class="player-author" id="playerAuthor">—</div>
+              <div class="player-dur" id="playerDur"></div>
+            </div>
+          </div>
+          <div class="player-center">
+            <div class="player-embed" id="playerEmbed"></div>
+          </div>
+          <div class="player-btns">
+            <button class="icon-btn" id="playerClose" title="Close player"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="4" x2="4" y2="12"/><line x1="4" y1="4" x2="12" y2="12"/></svg></button>
+            <button class="icon-btn" id="lyricsBtn" title="Show lyrics"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h12M4 8h8M4 12h10M4 16h6"/></svg></button>
+          </div>
+        </div>
+
+        <!-- Lyrics -->
+        <div class="lyrics-panel" id="lyricsPanel" style="display:none">
+          <div class="lyrics-hdr"><span>Lyrics</span><small id="lyricsSrc"></small><button class="icon-btn" id="lyricsClose"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="4" x2="4" y2="12"/><line x1="4" y1="4" x2="12" y2="12"/></svg></button></div>
+          <div class="lyrics-body" id="lyricsBody"><div class="lyrics-loading"><div class="spin-ring"></div>Fetching lyrics…</div></div>
+        </div>
+
+        <!-- Results -->
+        <div id="searchResults">
+          <div class="search-hint">
+            <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="28" cy="28" r="20"/><line x1="52" y1="52" x2="41" y2="41"/></svg>
+            <p>Search any song</p>
+            <span>YouTube &amp; SoundCloud — plays right here, no redirects</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <div class="footer-prog"><div class="footer-fill" id="progFill"></div></div>
+    <div class="footer-inner">
+      <span class="f-l"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7" r="5.5"/><polyline points="7,4.5 7,7 8.5,8"/></svg>Refresh every 5s &nbsp;·&nbsp; <span id="footerTime">--</span></span>
+      <span class="f-r"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7" r="5.5"/><path d="M1.5 7h11M7 1.5a8 8 0 0 1 0 11M7 1.5a8 8 0 0 0 0 11"/></svg><span id="footerPing">--</span> ms &nbsp;·&nbsp; <span id="footerNodes">--</span></span>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
